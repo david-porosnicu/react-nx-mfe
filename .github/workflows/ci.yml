@@ -65,7 +65,7 @@ jobs:
         run: npx nx build user-profile --configuration=production
 
       - name: Deploy host to S3
-        run: aws s3 sync dist/apps/host s3://my-mfe-workspace/host --delete
+        run: aws s3 sync dist/apps/host s3://my-mfe-workspace/ --delete
 
       - name: Deploy user-profile to S3
         run: aws s3 sync dist/apps/user-profile s3://my-mfe-workspace/user-profile --delete
