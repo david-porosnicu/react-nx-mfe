@@ -1,0 +1,19 @@
+{
+  "name": "user-profile-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/user-profile-e2e/src",
+  "implicitDependencies": ["user-profile"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/user-profile-e2e"],
+      "options": {
+        "config": "apps/user-profile-e2e/playwright.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
