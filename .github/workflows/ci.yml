@@ -58,33 +58,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 1) Build all affected projects
-      - name: Build affected projects
-        run: npx nx affected:build --base=origin/main --head=HEAD --configuration=production
+      - name: Build host (production)
+        run: npx nx build host --configuration=production
 
-      # 2) Deploy each affected app in dist/apps/<app> to s3://my-mfe-workspace/<app>
-      - name: Deploy affected apps to S3
-        shell: bash
-        run: |
-          set -euxo pipefail
+      - name: Build user-profile (production)
+        run: npx nx build user-profile --configuration=production
 
-          # Get the list of projects that have been built
-          apps=$(npx nx print-affected --base=origin/main --head=HEAD --target=build --select=projects)
+      - name: Deploy host to S3
+        run: aws s3 sync dist/apps/host s3://my-mfe-workspace/host --delete
 
-          if [[ -z "$apps" ]]; then
-            echo "No affected apps to deploy."
-            exit 0
-          fi
-
-          echo "Deploying these apps: $apps"
-          for app in $apps; do
-            dist="dist/apps/$app"
-            bucket="s3://my-mfe-workspace/$app"
-
-            if [[ -d "$dist" ]]; then
-              echo "→ syncing $dist → $bucket"
-              aws s3 sync "$dist" "$bucket" --delete
-            else
-              echo "⚠️  Skipping $app; directory $dist does not exist."
-            fi
-          done
+      - name: Deploy user-profile to S3
+        run: aws s3 sync dist/apps/user-profile s3://my-mfe-workspace/user-profile --delete
