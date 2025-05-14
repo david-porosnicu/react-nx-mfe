@@ -68,8 +68,8 @@ jobs:
         run: |
           set -euxo pipefail
 
-          # Get your list of changed apps vs. origin/main
-          apps=$(npx nx affected:apps --plain --base=origin/main --head=HEAD || true)
+          # Get the list of projects that have been built
+          apps=$(npx nx print-affected --base=origin/main --head=HEAD --target=build --select=projects)
 
           if [[ -z "$apps" ]]; then
             echo "No affected apps to deploy."
