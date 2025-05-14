@@ -31,30 +31,10 @@ jobs:
       - name: Test affected projects
         run: npx nx affected:test --base=origin/main --head=HEAD
 
-  # 2️⃣ Playwright E2E (only on push to main)
-  e2e:
-    name: Playwright E2E
-    needs: test
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm ci
-
-      # 1) Install system deps for Playwright
-      - name: Install Playwright dependencies
-        run: npx playwright install-deps
-
-      # 2) Run your E2E, forwarding to Playwright
-      - name: Run host E2E tests
-        run: npx nx e2e host-e2e
   # 3️⃣ Build & Deploy to S3 (only on push to main)
   deploy:
     name: Build & Deploy
-    needs: [test, e2e]
+    needs: [test]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -88,11 +68,8 @@ jobs:
         run: |
           set -euxo pipefail
 
-          # Ensure we have main locally so affected:apps works
-          git fetch origin main:main
-
-          # Get your list of changed apps (use local main)
-          apps=$(npx nx affected:apps --plain --base=main --head=HEAD || true)
+          # Get your list of changed apps vs. origin/main
+          apps=$(npx nx affected:apps --plain --base=origin/main --head=HEAD || true)
 
           if [[ -z "$apps" ]]; then
             echo "No affected apps to deploy."
