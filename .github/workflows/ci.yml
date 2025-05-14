@@ -1,0 +1,88 @@
+name: CI & Deploy
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # 1️⃣ Lint & Unit Tests (runs on PR and on push)
+  test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint affected projects
+        run: npx nx affected:lint --base=origin/main --head=HEAD
+
+      - name: Test affected projects
+        run: npx nx affected:test --base=origin/main --head=HEAD
+
+  # 2️⃣ Playwright E2E (only on push to main)
+  e2e:
+    name: Playwright E2E
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: '18' }
+      - run: npm ci
+
+      - name: Run host E2E tests
+        run: npx nx e2e host-e2e --headless
+
+  # 3️⃣ Build & Deploy to S3 (only on push to main)
+  deploy:
+    name: Build & Deploy
+    needs: [test, e2e]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1 # adjust if you used a different region
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build host (prod)
+        run: npx nx build host --configuration=production
+
+      - name: Build user-profile (prod)
+        run: npx nx build user-profile --configuration=production
+
+      - name: Deploy host to S3
+        run: aws s3 sync \
+          dist/apps/host \
+          s3://my-mfe-workspace/host \
+          --delete
+
+      - name: Deploy user-profile to S3
+        run: aws s3 sync \
+          dist/apps/user-profile \
+          s3://my-mfe-workspace/user-profile \
+          --delete
