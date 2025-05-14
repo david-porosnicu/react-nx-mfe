@@ -82,11 +82,30 @@ jobs:
 
       # 2) Deploy each affected app in dist/apps/<app> to s3://my-mfe-workspace/<app>
       - name: Deploy affected apps to S3
+        shell: bash
         run: |
-          # get a plain list of affected apps
-          apps=$(npx nx affected:apps --plain --base=origin/main --head=HEAD)
+          set -euxo pipefail
+
+          # Ensure we have main locally so affected:apps works
+          git fetch origin main:main
+
+          # Get your list of changed apps (use local main)
+          apps=$(npx nx affected:apps --plain --base=main --head=HEAD || true)
+
+          if [[ -z "$apps" ]]; then
+            echo "No affected apps to deploy."
+            exit 0
+          fi
+
           echo "Deploying these apps: $apps"
           for app in $apps; do
-            echo "→ syncing dist/apps/$app → s3://my-mfe-workspace/$app"
-            aws s3 sync "dist/apps/$app" "s3://my-mfe-workspace/$app" --delete
+            dist="dist/apps/$app"
+            bucket="s3://my-mfe-workspace/$app"
+
+            if [[ -d "$dist" ]]; then
+              echo "→ syncing $dist → $bucket"
+              aws s3 sync "$dist" "$bucket" --delete
+            else
+              echo "⚠️  Skipping $app; directory $dist does not exist."
+            fi
           done
