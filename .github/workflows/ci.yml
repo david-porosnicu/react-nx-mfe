@@ -38,11 +38,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        with: { node-version: '18' }
+        with:
+          node-version: '18'
       - run: npm ci
 
+      # 1) Install system deps for Playwright
+      - name: Install Playwright dependencies
+        run: npx playwright install-deps
+
+      # 2) Run your E2E, forwarding --headless to Playwright
       - name: Run host E2E tests
-        run: npx nx e2e host-e2e --headless
+        run: npx nx e2e host-e2e -- --headless
 
   # 3️⃣ Build & Deploy to S3 (only on push to main)
   deploy:
