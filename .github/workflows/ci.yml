@@ -48,10 +48,9 @@ jobs:
       - name: Install Playwright dependencies
         run: npx playwright install-deps
 
-      # 2) Run your E2E, forwarding --headless to Playwright
+      # 2) Run your E2E, forwarding to Playwright
       - name: Run host E2E tests
-        run: npx nx e2e host-e2e -- --headless
-
+        run: npx nx e2e host-e2e
   # 3️⃣ Build & Deploy to S3 (only on push to main)
   deploy:
     name: Build & Deploy
