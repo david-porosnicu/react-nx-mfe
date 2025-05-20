@@ -18,6 +18,7 @@
       "remote1/Module": ["apps/remote1/src/remote-entry.ts"],
       "remote2/Module": ["apps/remote2/src/remote-entry.ts"],
       "remote3/Module": ["apps/remote3/src/remote-entry.ts"],
+      "remote4/Module": ["apps/remote4/src/remote-entry.ts"],
       "user-profile/Module": ["apps/user-profile/src/remote-entry.ts"]
     }
   },
