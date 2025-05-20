@@ -33,7 +33,7 @@ jobs:
 
   # 3️⃣ Build & Deploy to S3 (only on push to main)
   deploy:
-    name: Build & Deploy
+    name: Build & Deploy All Apps
     needs: [test]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -53,19 +53,26 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1 # adjust if you used a different region
+          aws-region: eu-central-1
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build host (production)
-        run: npx nx build host --configuration=production
+      - name: Build all apps (host + remotes)
+        run: npx nx run-many --target=build --all --configuration=production
 
-      - name: Build user-profile (production)
-        run: npx nx build user-profile --configuration=production
-
-      - name: Deploy host to S3
+      - name: Deploy host to bucket root
         run: aws s3 sync dist/apps/host s3://my-mfe-workspace/ --delete
 
-      - name: Deploy user-profile to S3
-        run: aws s3 sync dist/apps/user-profile s3://my-mfe-workspace/user-profile --delete
+      - name: Deploy all remotes
+        shell: bash
+        run: |
+          set -euxo pipefail
+          for remote in dist/apps/*; do
+            name=$(basename "$remote")
+            if [[ "$name" == "host" ]]; then
+              continue
+            fi
+            echo "→ Deploying remote '$name'"
+            aws s3 sync "$remote" "s3://my-mfe-workspace/$name" --delete
+          done
