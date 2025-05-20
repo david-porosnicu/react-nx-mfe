@@ -36,7 +36,7 @@ jobs:
     name: Build & Deploy All Apps
     needs: [test]
     if: github.event_name == 'push'
-    runs-on: [self-hosted, ec2]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -58,8 +58,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build all apps (host + remotes)
-        run: npx nx run-many --target=build --all --configuration=production
+      - name: Build all apps (host + remotes, no cache)
+        run: npx nx run-many --target=build --all --configuration=production --skip-nx-cache
 
       - name: Deploy host to bucket root
         run: aws s3 sync dist/apps/host s3://my-mfe-workspace/ --delete
