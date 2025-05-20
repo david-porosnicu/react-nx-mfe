@@ -4,6 +4,8 @@ import NxWelcome from './nx-welcome';
 
 import { Link, Route, Routes } from 'react-router-dom';
 
+const Remote5 = React.lazy(() => import('remote5/Module'));
+
 const Remote4 = React.lazy(() => import('remote4/Module'));
 
 const Remote3 = React.lazy(() => import('remote3/Module'));
@@ -20,6 +22,9 @@ export function App() {
       <ul>
         <li>
           <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/remote5">Remote5</Link>
         </li>
         <li>
           <Link to="/remote4">Remote4</Link>
@@ -39,6 +44,7 @@ export function App() {
       </ul>
       <Routes>
         <Route path="/" element={<NxWelcome title="host" />} />
+        <Route path="/remote5" element={<Remote5 />} />
         <Route path="/remote4" element={<Remote4 />} />
         <Route path="/remote3" element={<Remote3 />} />
         <Route path="/remote2" element={<Remote2 />} />
