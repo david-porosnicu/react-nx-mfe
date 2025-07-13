@@ -10,7 +10,7 @@ jobs:
   # 1️⃣ Lint & Unit Tests (runs on PR and on push)
   test:
     name: Lint & Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -36,7 +36,7 @@ jobs:
     name: Build & Deploy All Apps
     needs: [test]
     if: github.event_name == 'push'
-    runs-on: [self-hosted, ec2]
+    runs-on: [blacksmith-8vcpu-ubuntu-2404, ec2]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
