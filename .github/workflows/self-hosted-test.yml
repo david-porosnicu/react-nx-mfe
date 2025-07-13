@@ -6,7 +6,7 @@ on:
 jobs:
   runner-test:
     runs-on:
-      - self-hosted
+      - blacksmith-8vcpu-ubuntu-2404
       - ec2
     steps:
       - name: Check out code
